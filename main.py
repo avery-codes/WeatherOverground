@@ -1,123 +1,111 @@
-from preferences import update_settings, print_settings, set_default
-from time_calculator import current, week, tomorrow
-from weather import get_weather, get_coordinates, get_forecasts, weigh_forecasts  # , print_weather
+from time_calculator import Calendars
+from weather import (get_grid, get_coordinates, get_forecasts, assemble_forecasts, get_aqi_dict, get_aqi,
+                     fahrenheit_to_celsius)
 import customtkinter as ctk
-import tkinter as tk
-from tkcalendar import Calendar
+from tabs import create_tabs
+from settings import set_default
+from configparser import ConfigParser
+import webbrowser
+from ui_elements import tab_frame_config
 
 
-ctk.set_appearance_mode("system")
-root = ctk.CTk()
+# todo error handling
+
+global template_tab, tab_1, tab_2, tab_3
 
 
-root.title("Weather Overground")
-root.geometry("800x400")  # window size
+def main() -> None:
 
-week = week()
-
-
-'''
-default_settings = set_default()
-btn = CTkButton(root, text="button!", command=print_settings(default_settings))
-btn.place(anchor="se")
-'''
-
-# current date, settings, coordinates via IP address
-current = current()
-settings = set_default()
-coordinates = get_coordinates()
-
-# get all weather forecast data
-response = get_weather(coordinates)
-forecasts = get_forecasts(response)
-# print_weather(forecasts, current, settings)
-
-# title
-label = ctk.CTkLabel(root, text=f"Weather Overground", font=("Arial", 22), padx=100,
-                     justify="center")
-label.pack()
-
-# def print_weather(forecasts, current, settings):
-# for each in forecasts:
-frame = ctk.CTkScrollableFrame(root, width=300, orientation="vertical")
-frame.pack(expand=True, padx=0, pady=0, fill="both")
+    # settings
+    config = ConfigParser()
+    #    config.read("weather.ini")
+    #   config_data = config["Settings"]
 
 
-#        label.pack(anchor="s")
-# label.pack(anchor = "center")
-# todo change to address, wouldn't need zip stuff with Nominatim
-# todo weather
-# todo outdoor air quality, pollen count
-# todo indoor air quality, link to sensor?
-# todo give a few options w/stats to pick from
-# todo set a reminder?
-
-'''
-# current settings
-current_settings = Settings()
-print_settings(current_settings)
-choice = input("Would you like to update the settings? Y or N     ").lower()   # todo traceback error KeyboardInterrupt
-if choice == "y":
-    current_settings = update_settings(current_settings)
-'''
-
-##########################
-# create tabview
-my_tab = ctk.CTkTabview(frame, width = 300, height = 500, corner_radius=10,
-                        segmented_button_selected_color="forest green")     # fg_color="gray26",
-
-my_tab.pack()
-
-# create tabs
-tab_1 = my_tab.add("Today")
-tab_2 = my_tab.add("Tomorrow")
-tab_3 = my_tab.add("This Week")
+    default_settings = set_default()
+    ctk.set_appearance_mode("system")
+    root = ctk.CTk()
+    root.title("Weather Overground")
+    WINDOW_WIDTH = 685
+    WINDOW_HEIGHT = 600
+    root.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}")  # main window
+    key = ""
+    aqi = get_aqi(key)     # for aqi display and attribution
+    font = ('Helvetica', 16)
 
 
-# put stuff in tabs
+    # main frame, entire window
+    main_grid = ctk.CTkFrame(root, width=WINDOW_WIDTH, height=WINDOW_HEIGHT)
+    main_grid.grid()
 
-# tab1
-label = ctk.CTkLabel(tab_1, text=f"Hourly Weather Window for {week[1]}", font=("Arial", 18), padx=100,
-                     justify="center")
-label.pack(anchor="nw")
-categories = ctk.CTkLabel(tab_1, text="Date\tTime\t    Temp\tHumidity\tRain\tWeight", font=("Arial", 14),
-                     justify="center", padx=20).pack()
-for i in forecasts:
-    hourly = weigh_forecasts(forecasts[i], settings)
-    if hourly.date == current[0]:
-        label = ctk.CTkLabel(tab_1, text=(f'{hourly.date:10}\t{hourly.start_time:10}\t{hourly.temperature:10}\t'
-                            f'{hourly.humidity:10}\t{hourly.rain_chance:10}\t{hourly.weight:10}'),
-                            font=("Arial", 16)).pack(expand=False, anchor="nw")
+    # defining main grid
+    main_grid.columnconfigure(0, weight=1)
+    main_grid.rowconfigure(0, weight=1)  # top row
+    main_grid.rowconfigure(1, weight=1)  # bottom row
+
+    # title label
+    headline = ctk.CTkLabel(main_grid, text="Weather Overground", font=("Arial", 24), text_color="white",
+                            anchor='center')
+    headline.grid(column=0, row=0, pady=10, sticky="nsew")
 
 
-# tab2
-tomorrow = tomorrow()
+    # dates, settings, coordinates via IP address
+    calendar = Calendars()
+    settings = set_default()
+    coordinates = get_coordinates()
+    # creating forecast list
+    grid_response = get_grid(coordinates)
+    try:
+        forecasts = get_forecasts(grid_response, settings)
+    except Traceback:
+        print("Forecasts failed to load. Please refresh using the reload button.")
+    forecast_list = assemble_forecasts(calendar, forecasts)
 
-label = ctk.CTkLabel(tab_2, text=f"Hourly Weather Window for {tomorrow}", font=("Arial", 18), padx=100, justify="center")
-label.pack(anchor="nw")
+    # tab frame, holds everything except header label
+    tab_frame = tab_frame_config(main_grid)
 
-categories = ctk.CTkLabel(tab_2, text="Date\tTime\t    Temp\tHumidity\tRain\tWeight", font=("Arial", 14),
-                     justify="center", padx=20).pack()
-for i in forecasts:
-    hourly = weigh_forecasts(forecasts[i], settings)
-    if hourly.date == tomorrow:
-        label = ctk.CTkLabel(tab_2, text=(f'{hourly.date:10}\t{hourly.start_time:10}\t{hourly.temperature:10}\t'
-                            f'{hourly.humidity:10}\t{hourly.rain_chance:10}\t{hourly.weight:10}'),
-                            font=("Arial", 16)).pack()
+    forecast_frame = ctk.CTkFrame(tab_frame, width=675, height=WINDOW_HEIGHT - 40)
+    forecast_frame.grid(row=1, column=0, sticky='nsew')
+    create_tabs(forecast_frame, font, forecasts, calendar, key)
 
-# tab3
-label = ctk.CTkLabel(tab_3, text="Hourly Weather Window for This Week", font=("Arial", 18), padx=100, justify="center").pack()
-categories = ctk.CTkLabel(tab_3, text="Date\tTime\t    Temp\tHumidity\tRain\tWeight", font=("Arial", 14),
-                          justify="center", padx=20).pack()
-for i in forecasts:
-    hourly = weigh_forecasts(forecasts[i], settings)
-    if hourly.date in week:
-        label = ctk.CTkLabel(tab_3, text=(f'{hourly.date:10}\t{hourly.start_time:10}\t{hourly.temperature:10}\t'
-                            f'{hourly.humidity:10}\t{hourly.rain_chance:10}\t{hourly.weight:10}'),
-                            font=("Arial", 16)).pack()
+    # ---------------------------------
+    # refresh button
+    def refresh(font):
+        for widget in forecast_frame.winfo_children():
+            widget.destroy()
+        create_tabs(forecast_frame, font, forecasts, calendar, key)
 
-root.mainloop()
-# root2.mainloop()
 
-# my_button = ctk.CTkButton(tab_1, text="Click me!")
-# my_button.pack(pady=40)
+    refresh_button = ctk.CTkButton(tab_frame, text=f'Refresh Forecasts \U0001F504', command=refresh(font), font=font,
+                                   fg_color="forest green")
+    refresh_button.grid(row=0, column=0, sticky='w', padx=5, pady=5)
+    # ---------------------------------
+
+
+    def aqi_action(aqi):
+        def no_action():
+            pass
+
+        # ACI button
+        if aqi is not None:
+            if aqi.color == "yellow":
+                aqi_button = ctk.CTkButton(tab_frame, text=f'Outdoor AQI: {aqi.designation} {aqi.index}',
+                                           command=no_action(), fg_color=aqi.color, text_color='black')
+            else:
+                aqi_button = ctk.CTkButton(tab_frame, text=f'Outdoor AQI: {aqi.designation} {aqi.index}',
+                                           command=no_action(), fg_color=aqi.color)
+        else:
+            aqi_button = ctk.CTkButton(tab_frame, text="Sorry, API failed to load.", fg_color="black",
+                                       command=no_action())
+        aqi_button.grid(row=0, column=0, sticky='e', padx=5, pady=5)
+
+
+
+    aqi_action(aqi)
+
+    root.mainloop()
+
+
+
+if __name__ == '__main__':
+    main()
