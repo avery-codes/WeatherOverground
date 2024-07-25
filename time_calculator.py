@@ -1,23 +1,18 @@
-from datetime import datetime, date, timedelta
+from datetime import datetime, timedelta
 
 
-def current():
-    time = datetime.now()
-    current_time = {0: time.strftime("%m-%d"), 1: time.strftime("%H:%M")}
-    return current_time
+class Calendars:
+    def __init__(self):
+        self.current = datetime.now()
+        self.today = self.current.strftime("%m-%d")
+        self.currentTime = self.current.strftime("%H:%M")
+        self.tomorrow = (datetime.now() + timedelta(days=1)).strftime("%m-%d")
+        self.day_after = (datetime.now() + timedelta(days=2)).strftime("%m-%d")
+        self.stop_date = (datetime.now() + timedelta(days=3)).strftime("%m-%d")
 
 
-def tomorrow():
-    time = datetime.now()
-    tomorrow = time + timedelta(days=1)
-    tomorrow = tomorrow.strftime("%m-%d")
-    return tomorrow
-
-
-def week():
-    this_week = []
-    for i in range(7):
-        day_plus = (date.today() + timedelta(days=i))
-        formatted = day_plus.strftime("%m-%d")
-        this_week.append(f"{formatted}")
-    return this_week
+def convert_time(time_12, hour) -> str:     # fixme is it a string??
+    if time_12:
+        if hour > 12:
+            hour = hour - 12
+            return hour
