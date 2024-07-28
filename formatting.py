@@ -1,6 +1,3 @@
-import customtkinter as ctk
-
-
 # Checkbox buttons
 def tb_settings(settings, hour) -> bool:
     start = settings.start_time[:1]

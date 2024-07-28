@@ -142,17 +142,34 @@ def links_display(frame, font, row, column, response_dict) -> None:
         webbrowser.open_new(url)
 
 
-    label_text(frame, text="API Sources and Attribution:\n", font=font, row=row, column=column)
+    label_text(frame, text="Sources and Attribution:\n", font=font, row=row, column=column)
 
     # attributions as required by weather report API
     row += 2
-    for each in response_dict['data']['attributions']:
-        # text = f"{each['name']}: {each['url']}\n"
-        button = ctk.CTkButton(frame, text=f'{each['name']}  \U0001F517', command=lambda url=each['url']: callback(url),
-                               fg_color="forest green", font=font)
+    label_text(frame, text="Forecasts:\n", font=font, row=row, column=column)
+    button = ctk.CTkButton(frame, text=f'National Weather Service \U0001F517',
+                           command=lambda url="https://www.weather.gov/": callback(url),
+                           fg_color="forest green", font=font)
+    button.grid(row=row, column=column, sticky='w', pady=5)
+    row += 2
+
+    label_text(frame, text="AQI:\n", font=font, row=row, column=column)
+
+    try:
+        for each in response_dict['data']['attributions']:
+            # text = f"{each['name']}: {each['url']}\n"
+            button = ctk.CTkButton(frame, text=f'{each['name']}  \U0001F517',
+                                   command=lambda url=each['url']: callback(url),
+                                   fg_color="forest green", font=font)
+            button.grid(row=row, column=column, sticky='w', pady=5)
+            row += 1
+        row_spacer(frame, font, row + 1, column)
+
+    except TypeError:
+        button = ctk.CTkButton(frame, text="API currently unavailable", fg_color="forest green", font=font)
         button.grid(row=row, column=column, sticky='w', pady=5)
         row += 1
-    row_spacer(frame, font, row + 1, column)
+        row_spacer(frame, font, row + 1, column)
 
     # additional info
     label_text(frame, text="Additional Information:\n", font=font, row=row+2, column=column)

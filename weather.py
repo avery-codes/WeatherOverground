@@ -1,5 +1,6 @@
 import requests
-# import customtkinter as ctk
+import customtkinter as ctk
+from sorting import sort_forecasts
 
 #
 # app = ctk.CTk()
@@ -27,7 +28,8 @@ def get_coordinates() -> tuple[float, float]:
     return coordinates
 
 
-def get_grid(coordinates):  # returns requests.get...json
+def get_nws_api(coordinates):  # returns requests.get...json
+    # national weather service api
     response = requests.get(f'https://api.weather.gov/points/{coordinates[0]},{coordinates[1]}/').json()
     grid_id = response['properties']['gridId']
     grid_x = response['properties']['gridX']
@@ -44,7 +46,6 @@ def get_forecasts(response, settings) -> list[Forecast]:
                             each['probabilityOfPrecipitation']['value'])
         forecast.weight = weigh_forecasts(forecast, settings)
         forecasts.append(forecast)
-
     return forecasts
 
 
@@ -91,14 +92,13 @@ def assemble_forecasts(calendar, forecasts) -> list[list]:
 
 
 def get_aqi_dict(key) -> dict:
-    # https://aqicn.org/json-api/doc/#api-Geolocalized_Feed-GetHereFeed
     request_address = f'https://api.waqi.info/feed/here/?token={key}'
     response = requests.get(request_address)
     response_dict = response.json()
     return response_dict
 
 
-class AQI:
+class AQI_SPECIFICATIONS:
     def __init__(self, index, color, designation):
         self.index = index
         self.color = color
@@ -111,35 +111,40 @@ class AQI_ATTRIBUTIONS:
         self.name = attributions[1]
 
 
-
-def get_aqi(key) -> AQI:
+def get_aqi_specs(key) -> AQI_SPECIFICATIONS:
     aqi_dict = get_aqi_dict(key)
-    aqi = aqi_dict["data"]["aqi"]
-    aqi = int(aqi)
+    try:
+        aqi_index = aqi_dict["data"]["aqi"]
+    except:
+        print("AQI not currently available -- Error in get_aqi_specs")
+        aqi_specs = AQI_SPECIFICATIONS(int(-1), "black", "Unavailable")
+        return aqi_specs
+
+    aqi_index = int(aqi_index)
     color = 'black'
     designation = 'Error'
-    current_aqi = AQI(aqi, color, designation)
+    aqi_specs = AQI_SPECIFICATIONS(aqi_index, color, designation)
 
-    if aqi is not None:
-        if aqi >= 301:
-            current_aqi.color = 'red4'
-            current_aqi.designation = "Hazardous"
-        elif aqi >= 200:
-            current_aqi.color = 'purple3'
-            current_aqi.designation = "Very Unhealthy"
-        elif aqi >= 151:
-            current_aqi.color = 'red2'
-            current_aqi.designation = "Unhealthy"
-        elif aqi >= 101:
-            current_aqi.color = 'dark orange'
-            current_aqi.designation = "Unhealthy for Some"
-        elif aqi >= 51:
-            current_aqi.color = 'yellow'
-            current_aqi.designation = "Moderate"
+    if aqi_index is not None:
+        if aqi_index >= 301:
+            aqi_specs.color = 'red4'
+            aqi_specs.designation = "Hazardous"
+        elif aqi_index >= 200:
+            aqi_specs.color = 'purple3'
+            aqi_specs.designation = "Very Unhealthy"
+        elif aqi_index >= 151:
+            aqi_specs.color = 'red2'
+            aqi_specs.designation = "Unhealthy"
+        elif aqi_index >= 101:
+            aqi_specs.color = 'dark orange'
+            aqi_specs.designation = "Unhealthy for Some"
+        elif aqi_index >= 51:
+            aqi_specs.color = 'yellow'
+            aqi_specs.designation = "Moderate"
         else:
-            current_aqi.color = 'green'
-            current_aqi.designation = "Good"
-        return current_aqi
+            aqi_specs.color = 'green'
+            aqi_specs.designation = "Good"
+        return aqi_specs
 
 
 def fahrenheit_to_celsius(temperature) -> float:
@@ -148,6 +153,35 @@ def fahrenheit_to_celsius(temperature) -> float:
     return celsius_temperature
 
 
-# fixme:
 def clock_to_ampm() -> None:
+
     pass
+
+
+def test_sorting(forecast_list, sorting_parameters) -> None:
+    sorted_list = sort_forecasts(forecast_list, 'humidity', False)
+
+    print(f'Sorted forecasts by humidity:')
+    print("Date / Time / Time / Temp / Humidity / Rain / Weight")
+
+    print("List 1:")
+    count = 0
+    this_list = sorted_list[0]
+    while count < len(this_list):
+            print(f'List 1, Index {count}: {this_list[count]}')
+            count += 1
+
+    count = 0
+    this_list = sorted_list[1]
+    print("List 2:")
+    while count < len(this_list):
+            print(f'List 2, Index {count}: {this_list[count]}')
+            count += 1
+
+
+    this_list = sorted_list[2]
+    print("List 3:")
+    count = 0
+    while count < len(this_list):
+        print(f'List 3, Index {count}: {this_list[count]}')
+        count += 1

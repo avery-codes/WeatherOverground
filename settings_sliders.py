@@ -1,9 +1,9 @@
-from RangeSlider.RangeSlider import RangeSliderH, RangeSliderV
+# from RangeSlider.RangeSlider import RangeSliderH, RangeSliderV
 
 from tkinter import *
-import tkinter as tk
+# import tkinter as tk
 
-root = tk.Tk()      # todo integrate this w/ctk on main
+# root = tk.Tk()      # todo integrate this w/ctk on main
 
 '''
 def rangeslider():
