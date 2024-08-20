@@ -1,12 +1,14 @@
+from time_calculator import Calendars
+from weather import (get_grid, get_coordinates, get_forecasts, assemble_forecasts, get_aqi_dict, get_aqi,
+                     fahrenheit_to_celsius)
 import customtkinter as ctk
 from tabs import create_tabs
-from sorting import get_sorting_values
+from settings import set_default
+from configparser import ConfigParser
+import webbrowser
 
 
-# forest green use '#228B22'
-
-
-def tab_frame_config(main_grid) -> object:
+def tab_frame_config(main_grid):
     # tab frame, holds everything except header label
     frame = ctk.CTkFrame(main_grid, width=675, height=550, corner_radius=10)
     frame.grid(row=1, column=0, sticky="nsew")
@@ -18,45 +20,35 @@ def tab_frame_config(main_grid) -> object:
     return frame
 
 
-def refresh_button(frame, font, forecasts, calendar, key, tab_frame) -> None:
-    def refresh(frame, font, forecasts, calendar, key):
-        for widget in frame.winfo_children():
+
+
+def refresh_button(forecast_frame, font, forecasts, calendar, key, tab_frame) -> None:
+    def refresh(forecast_frame, font, forecasts, calendar, key):
+        for widget in forecast_frame.winfo_children():
             widget.destroy()
-        create_tabs(frame, font, forecasts, calendar, key)
+        create_tabs(forecast_frame, font, forecasts, calendar, key)
 
     button = ctk.CTkButton(tab_frame, text=f'Refresh Forecasts \U0001F504',
-                           command=refresh(frame, font, forecasts, calendar, key), font=font,
+                           command=refresh(forecast_frame, font, forecasts, calendar, key), font=font,
                            fg_color="forest green")
     button.grid(row=0, column=0, sticky='w', padx=5, pady=5)
 
+# ---------------------------------
 
-def aqi_button(aqi_specs, frame, font) -> None:
-    if aqi_specs is not None:
-        if aqi_specs.color == "yellow":
-            button = ctk.CTkButton(frame, text=f'Outdoor AQI: {aqi_specs.designation} {aqi_specs.index}',
-                                   fg_color=aqi_specs.color, hover_color=aqi_specs.color, text_color='black', font=font)
+
+def aqi_action(aqi):
+    def no_action():
+        pass
+
+    # ACI button
+    if aqi is not None:
+        if aqi.color == "yellow":
+            aqi_button = ctk.CTkButton(tab_frame_config, text=f'Outdoor AQI: {aqi.designation} {aqi.index}',
+                                       command=no_action(), fg_color=aqi.color, text_color='black')
         else:
-            button = ctk.CTkButton(frame, text=f'Outdoor AQI: {aqi_specs.designation} {aqi_specs.index}',
-                                   fg_color=aqi_specs.color, hover_color=aqi_specs.color, font=font)
+            aqi_button = ctk.CTkButton(tab_frame_config, text=f'Outdoor AQI: {aqi.designation} {aqi.index}',
+                                       command=no_action(), fg_color=aqi.color)
     else:
-        button = ctk.CTkButton(frame, text="Sorry, API failed to load.", fg_color='black', hover_color='black',
-                               font=font)
-
-    button.grid(row=0, column=0, sticky='ns', padx=5, pady=5)
-
-
-
-def sorting_button(frame, font):
-    def optionmenu_callback(choice):
-        print("optionmenu dropdown clicked:", choice)
-
-    sorting_values = get_sorting_values()
-
-    optionmenu_var = ctk.StringVar(value="Sort results by:")
-    optionmenu = ctk.CTkOptionMenu(frame, width=220,
-                                   values=sorting_values,
-                                   command=optionmenu_callback,
-                                   variable=optionmenu_var, fg_color="gray16", button_color="forest green", font=font)
-    optionmenu.grid(row=0, column=0, sticky='e', padx=5, pady=5)
-
-    # .get to grab the current string value of optionmenu
+        aqi_button = ctk.CTkButton(tab_frame_config, text="Sorry, API failed to load.", fg_color="black",
+                                   command=no_action())
+    aqi_button.grid(row=0, column=0, sticky='e', padx=5, pady=5)

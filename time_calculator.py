@@ -11,8 +11,3 @@ class Calendars:
         self.stop_date = (datetime.now() + timedelta(days=3)).strftime("%m-%d")
 
 
-def convert_time(time_12, hour) -> str:     # fixme is it a string??
-    if time_12:
-        if hour > 12:
-            hour = hour - 12
-            return hour
