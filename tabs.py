@@ -84,5 +84,3 @@ def make_settings_tab(tab, font, key) -> None:
     cancel_settings(frame, font, 14, 0)  # 16 - 17
 
     links_display(frame, font, 18, 0, response_dict)    # 18+
-
-

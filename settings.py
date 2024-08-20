@@ -14,6 +14,6 @@ class Settings:
 
 
 def set_default():      # fixme use the config feature to load/update
-    default_settings = Settings("Default",45,80,"08:00",
+    default_settings = Settings("Default", 45, 80, "08:00",
                                 "21:00")
     return default_settings

@@ -52,4 +52,3 @@ def aqi_action(aqi):
         aqi_button = ctk.CTkButton(tab_frame_config, text="Sorry, API failed to load.", fg_color="black",
                                    command=no_action())
     aqi_button.grid(row=0, column=0, sticky='e', padx=5, pady=5)
-

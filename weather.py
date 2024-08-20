@@ -91,7 +91,6 @@ def assemble_forecasts(calendar, forecasts) -> list[list]:
 
 
 def get_aqi_dict(key) -> dict:
-    # https://aqicn.org/json-api/doc/#api-Geolocalized_Feed-GetHereFeed
     request_address = f'https://api.waqi.info/feed/here/?token={key}'
     response = requests.get(request_address)
     response_dict = response.json()
@@ -148,6 +147,8 @@ def fahrenheit_to_celsius(temperature) -> float:
     return celsius_temperature
 
 
-# fixme:
-def clock_to_ampm() -> None:
-    pass
+def convert_time(time_12, hour) -> str:     # fixme is it a string??
+    if time_12:
+        if hour > 12:
+            hour = hour - 12
+            return hour

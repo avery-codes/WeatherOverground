@@ -26,7 +26,8 @@ def grid_configure(frame, total_rows) -> None:
 def temp_scale_toggle(frame, font, row, column) -> None:
     def switch_event():
         current_value = scale_value.get()
-        scale_switch.configure(text=f"{current_value}")
+        scale_switch.configure(text=f"{current_value}")     # ui element, not the swapping itself
+
 
     label = ctk.CTkLabel(frame, text="Show temperature in:", font=font)
     label.grid(row=row, column=column, sticky='w', padx=5)
@@ -147,9 +148,10 @@ def links_display(frame, font, row, column, response_dict) -> None:
     # attributions as required by weather report API
     row += 2
     for each in response_dict['data']['attributions']:
-        # text = f"{each['name']}: {each['url']}\n"
-        button = ctk.CTkButton(frame, text=f'{each['name']}  \U0001F517', command=lambda url=each['url']: callback(url),
+        # text = f"{each['name']}: {each['url']}\n"\U0001F517'
+        button = ctk.CTkButton(frame, text={each['name']}, command=lambda url=each['url']: callback(url),
                                fg_color="forest green", font=font)
+        
         button.grid(row=row, column=column, sticky='w', pady=5)
         row += 1
     row_spacer(frame, font, row + 1, column)
@@ -160,7 +162,7 @@ def links_display(frame, font, row, column, response_dict) -> None:
 
 # ----------------------------------------------------------
 
-
+"""
 if __name__ == "__main__":
     root = ctk.CTk()
     frame = ctk.CTkFrame(root)
@@ -172,3 +174,4 @@ if __name__ == "__main__":
     time_scale_toggle(frame, font, row=0, column=0)
     profile_select(frame, font, row=0, column=0)
     root.mainloop()
+"""
